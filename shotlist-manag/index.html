@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Shotlist Manager | Пре-продакшн студия</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="navbar">
+    <div class="container nav-inner">
+        <div class="logo">
+            SHOTLIST<span>MANAGER</span><small>pre-prod core</small>
+        </div>
+        <div class="nav-buttons">
+            <button class="new-project-btn" id="openProjectBtn">📁 Проекты</button>
+            <button class="new-project-btn" id="openModalBtn">+ Добавить сцену</button>
+        </div>
+    </div>
+</header>
+
+<main class="container">
+    <div class="hero fade-up">
+        <h1>Планирование кадра<br>от концепции до пост-продакшн</h1>
+        <p>Управляйте сценами, прикрепляйте визуальные референсы, отслеживайте статусы готовности в едином центре.</p>
+    </div>
+
+    <div class="project-header">
+        <div class="current-project">
+            <i class="fas fa-film"></i>
+            <span id="currentProjectName">Нет активного проекта</span>
+        </div>
+    </div>
+
+    <div class="stats-bar fade-up">
+        <div class="stats-cards">
+            <div class="stat"><span class="stat-value" id="totalScenesCount">0</span><span class="stat-label">Всего сцен</span></div>
+            <div class="stat"><span class="stat-value" id="readyCount">0</span><span class="stat-label">Готово</span></div>
+            <div class="stat"><span class="stat-value" id="progressCount">0</span><span class="stat-label">В работе</span></div>
+        </div>
+        <div class="filter-group" id="filterGroup">
+            <button class="filter-btn active" data-filter="all">Все сцены</button>
+            <button class="filter-btn" data-filter="ready">Готово</button>
+            <button class="filter-btn" data-filter="progress">В работе</button>
+            <button class="filter-btn" data-filter="pending">Ожидание</button>
+            <button class="filter-btn" data-filter="equipment">Оборудование</button>
+        </div>
+    </div>
+
+    <div id="scenesGrid" class="scenes-grid fade-up"></div>
+    <div id="equipmentPanel" class="equipment-panel fade-up" style="display: none;">
+        <h3><i class="fas fa-video"></i> Оборудование проекта</h3>
+        <div id="equipmentContent"></div>
+    </div>
+</main>
+
+<footer>
+    <div class="container">
+        <p>SHOTLIST MANAGER — профессиональный инструмент пре-продакшн | Sony Orange Identity</p>
+    </div>
+</footer>
+
+<!-- Модальное окно для сцен -->
+<div id="sceneModal" class="modal">
+    <div class="modal-content">
+        <h3 id="modalTitle">Новая сцена</h3>
+        <form id="sceneForm">
+            <div class="form-group">
+                <label>Номер сцены (например, 1A / 12)</label>
+                <input type="text" id="sceneNumber" placeholder="SC. 1 / INT. OFFICE">
+            </div>
+            <div class="form-group">
+                <label>Название сцены *</label>
+                <input type="text" id="sceneTitle" placeholder="Встреча в кабинете" required>
+            </div>
+            <div class="form-group">
+                <label>Описание / визуальные заметки</label>
+                <textarea id="sceneDesc" placeholder="Локация, реквизит, свет, движение камеры..."></textarea>
+            </div>
+            <div class="form-group">
+                <label>Фотография (референс / storyboard)</label>
+                <div class="image-upload-area" id="imageUploadArea">
+                    <i class="fas fa-camera" style="margin-right: 6px;"></i> Нажмите для загрузки
+                    <input type="file" id="imageInput" accept="image/jpeg,image/png,image/webp" style="display: none;">
+                </div>
+                <div id="imagePreviewContainer" style="display: none;" class="current-image-preview">
+                    <img id="imagePreview" src="" alt="Предпросмотр">
+                    <button type="button" id="removeImageBtn" class="remove-image-btn">Удалить фото</button>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Статус готовности</label>
+                <select id="sceneStatus">
+                    <option value="pending">Ожидание (Pending)</option>
+                    <option value="progress">В работе (In Progress)</option>
+                    <option value="ready">Готово (Ready)</option>
+                </select>
+            </div>
+            <div class="modal-buttons">
+                <button type="button" class="btn-cancel" id="closeModalBtn">Отмена</button>
+                <button type="submit" class="btn-submit">Сохранить сцену</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Модальное окно проектов (с выбором оборудования и ручным вводом) -->
+<div id="projectModal" class="modal">
+    <div class="modal-content project-modal-content">
+        <h3>Управление проектами</h3>
+
+        <div class="projects-sidebar">
+            <h4>Мои проекты</h4>
+            <div id="projectsList" class="projects-list"></div>
+        </div>
+
+        <div class="create-project-form">
+            <h4>Создать новый проект</h4>
+            <form id="createProjectForm">
+                <div class="form-group">
+                    <label>Название проекта *</label>
+                    <input type="text" id="projectName" placeholder="Название фильма/ролика" required>
+                </div>
+                <div class="form-group">
+                    <label>Описание проекта</label>
+                    <textarea id="projectDescription" rows="2" placeholder="Краткое описание проекта"></textarea>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Клиент</label>
+                        <input type="text" id="projectClient" placeholder="Название компании/клиента">
+                    </div>
+                    <div class="form-group">
+                        <label>Дедлайн</label>
+                        <input type="date" id="projectDeadline">
+                    </div>
+                </div>
+
+                <h4>Оборудование проекта</h4>
+                <!-- Камеры -->
+                <div class="form-group">
+                    <label>Камеры (выберите из списка)</label>
+                    <select id="projectCameras" multiple size="4"></select>
+                    <div style="margin-top: 10px;">
+                        <input type="text" id="customCameraInput" placeholder="Введите свою камеру" style="width: 70%; background: #1c1c1c; border: 1px solid #3a3a3a; padding: 0.5rem; border-radius: 16px; color: white;">
+                        <button type="button" id="addCustomCameraBtn" class="btn-submit" style="padding: 0.5rem 1rem; margin-left: 5px;">+ Добавить</button>
+                    </div>
+                    <div id="customCamerasList" style="margin-top: 8px; font-size: 0.8rem; color: var(--sony-orange);"></div>
+                </div>
+                <!-- Объективы -->
+                <div class="form-group">
+                    <label>Объективы (выберите из списка)</label>
+                    <select id="projectLenses" multiple size="4"></select>
+                    <div style="margin-top: 10px;">
+                        <input type="text" id="customLensInput" placeholder="Введите свой объектив" style="width: 70%; background: #1c1c1c; border: 1px solid #3a3a3a; padding: 0.5rem; border-radius: 16px; color: white;">
+                        <button type="button" id="addCustomLensBtn" class="btn-submit" style="padding: 0.5rem 1rem; margin-left: 5px;">+ Добавить</button>
+                    </div>
+                    <div id="customLensesList" style="margin-top: 8px; font-size: 0.8rem; color: var(--sony-orange);"></div>
+                </div>
+                <!-- Рекордеры -->
+                <div class="form-group">
+                    <label>Рекордеры/Мониторы</label>
+                    <select id="projectRecorders" multiple size="4"></select>
+                    <div style="margin-top: 10px;">
+                        <input type="text" id="customRecorderInput" placeholder="Введите свой рекордер" style="width: 70%; background: #1c1c1c; border: 1px solid #3a3a3a; padding: 0.5rem; border-radius: 16px; color: white;">
+                        <button type="button" id="addCustomRecorderBtn" class="btn-submit" style="padding: 0.5rem 1rem; margin-left: 5px;">+ Добавить</button>
+                    </div>
+                    <div id="customRecordersList" style="margin-top: 8px; font-size: 0.8rem; color: var(--sony-orange);"></div>
+                </div>
+                <!-- Стабилизация -->
+                <div class="form-group">
+                    <label>Системы стабилизации</label>
+                    <select id="projectStabilization" multiple size="4"></select>
+                    <div style="margin-top: 10px;">
+                        <input type="text" id="customStabInput" placeholder="Введите свою систему стабилизации" style="width: 70%; background: #1c1c1c; border: 1px solid #3a3a3a; padding: 0.5rem; border-radius: 16px; color: white;">
+                        <button type="button" id="addCustomStabBtn" class="btn-submit" style="padding: 0.5rem 1rem; margin-left: 5px;">+ Добавить</button>
+                    </div>
+                    <div id="customStabList" style="margin-top: 8px; font-size: 0.8rem; color: var(--sony-orange);"></div>
+                </div>
+
+                <div class="modal-buttons">
+                    <button type="button" class="btn-cancel" id="closeProjectModalBtn">Отмена</button>
+                    <button type="submit" class="btn-submit">Создать проект</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Полноэкранный просмотр изображения -->
+<div id="fullscreenViewer" class="fullscreen-modal">
+    <img id="fullscreenImage" src="" alt="Полноэкранный просмотр">
+</div>
+
+<script src="js/equipment.js"></script>
+<script src="js/database.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
